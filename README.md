@@ -121,3 +121,12 @@ DO  - 10.1038/s41598-023-37406-4
 ID  - Pchitskaya2023
 ER  - 
 ```
+• Spine Length (L). The average distance from the base centroid (\(\vec{c}\)) to the furthest 5% of surface vertices on the spine tip. x
+• Volume (V). The total 3D internal volume enclosed by the closed polygonal mesh of the spine. x
+• Surface Area (SA). The total outer surface area of all triangles making up the spine mesh. X
+• Convex Hull Volume (CHV). The total volume of the smallest 3D convex polyhedron wrapped around the outer vertices of the spine.
+• Convex Hull Ratio (CHR). The normalized amount of empty concave space inside the hull, calculated as \(\frac{CHV-V}{V}\).
+• Average Distance (AD). The mean straight-line distance from the base centroid (\(\vec{c}\)) to every vertex on the spine's surface. x
+• Coefficient of Variation in Distance (CVD). The standard deviation divided by the mean of all vertex distances from the base centroid (\(\vec{c}\)), capturing how unevenly the spine's mass is spread out. x
+• Open Angle (OA). The average angle between the vector pointing from the base centroid (\(\vec{c}\)) to each surface vertex and the spine's main central axis vector, measuring how wide or flared the spine grows. x
+

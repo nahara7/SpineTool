@@ -333,14 +333,14 @@ class VolumeSpineMetric(FloatSpineMetric):
     def _calculate(self, spine_mesh: Polyhedron_3) -> Any:
         return abs(volume(spine_mesh))
 
-
+## Quantify how much the segmented dendritic spine deviates from a simple convex shape
 class ConvexHullVolumeSpineMetric(FloatSpineMetric):
     def _calculate(self, spine_mesh: Polyhedron_3) -> Any:
         hull_mesh = Polyhedron_3()
         convex_hull_3(spine_mesh.points(), hull_mesh)
         return volume(hull_mesh)
 
-
+## How much concavity
 class ConvexHullRatioSpineMetric(FloatSpineMetric):
     def _calculate(self, spine_mesh: Polyhedron_3) -> Any:
         hull_mesh = Polyhedron_3()
@@ -379,20 +379,22 @@ class JunctionSpineMetric(FloatSpineMetric, ABC):
         for point in spine_mesh.points():
             self._surface_vectors.append(_point_2_vec(point) - self._junction_center)
 
-
+## Identify fan triangles covering the base area (junction_triangles 
+## Compute the 2D area of each patch triangle
+## Sum for total Foot Area (or Junction Area)
 class JunctionAreaSpineMetric(JunctionSpineMetric):
     def _calculate(self, spine_mesh: Polyhedron_3) -> Any:
-        super()._calculate(spine_mesh)
-        
+        super()._calculate(spine_mesh)       
         return sum(face_area(triangle, spine_mesh)
                    for triangle in self._junction_triangles)
 
-
+## Compute surface area of entire spine mesh
+## Subtract the junction area
 class AreaSpineMetric(JunctionAreaSpineMetric):
     def _calculate(self, spine_mesh: Polyhedron_3) -> Any:
         return area(spine_mesh) - super()._calculate(spine_mesh)
 
-
+## All distances
 class JunctionDistanceSpineMetric(JunctionSpineMetric, ABC):
     _distances: List[float]
 
@@ -410,7 +412,7 @@ class AverageDistanceSpineMetric(JunctionDistanceSpineMetric):
         super()._calculate(spine_mesh)
         return np.mean(self._distances)
 
-
+## Return average distance for the top 5% longest euclidian distances
 class LengthSpineMetric(JunctionDistanceSpineMetric):
     def _calculate(self, spine_mesh: Polyhedron_3) -> Any:
         super()._calculate(spine_mesh)
@@ -427,12 +429,22 @@ class LengthAreaRatioSpineMetric(LengthSpineMetric):
     def _calculate(self, spine_mesh: Polyhedron_3) -> Any:
         return super()._calculate(spine_mesh) / area(spine_mesh)
 
-
+## Standard deviation of distances / mean distance
+## Interpret i.e all vertices sit roughly same distance from the base --uniform shape
+## i.e mix of close neck vertices and distant head vertices, 
+## i.e vertices stretch (thin spine)
 class CVDSpineMetric(JunctionDistanceSpineMetric):
     def _calculate(self, spine_mesh: Polyhedron_3) -> Any:
         super()._calculate(spine_mesh)
         return np.std(self._distances, ddof=1) / np.mean(self._distances)
 
+## Compute surface vectors, every surface vertex shifted relative to base centroid
+## Find the average 3D vector, represent centerline to measure against vertex spreads
+## Cross product producs a perpendicular vector []
+## Take the euclidian norm of the cross product to represent how far wide the angle is
+## Take the dot product to measure how far forward the vertex is aligned with the centerline
+## atan2 computed the angle between the axis a and vertex v
+## Find the average open angle
 
 class OpenAngleSpineMetric(JunctionSpineMetric):
     def _calculate(self, spine_mesh: Polyhedron_3) -> Any:
