@@ -228,11 +228,14 @@ class SpineMetricDataset:
             return TSNE(n_components, init="pca").fit_transform(self.as_array())
         else:
             raise NotImplemented(f"method {method} is not supported")
-
+    
+    ## PC1 and PC2: first and second principal components
     def reduce(self, n_components: int = 2, method: str = "pca") -> "SpineMetricDataset":
         reduced_metrics = {spine_name: [] for spine_name in self.spine_names}
+        # Transform all spines features vectors, for two components, return two coordinates per spine
         reduced_data = self.as_reduced_array(n_components, method)
         ordered_names = self.ordered_spine_names
+        ## I.e reduced data at the first spine, first principal component
         for i, spine_name in enumerate(ordered_names):
             for j in range(n_components):
                 conv = ManualFloatSpineMetric(reduced_data[i, j], f"PC{j + 1}")
