@@ -53,7 +53,8 @@ class IntersectionRatios(Dict[str, Dict[str, float]]):
                 group_ratios[denominator_group_key] = a_group_label
                 writer.writerow(group_ratios)
 
-
+# Spine grouping is a data structure that records which class a spine belongs to
+# Each manual_classification.json is a SpineGrouping.
 class SpineGrouping:
     groups: Dict[str, Set[str]]
     samples: Set[str]
@@ -208,20 +209,18 @@ class SpineGrouping:
         return {label: SpineGrouping.accuracy(true_grouping.get_groups_subset({label}),
                                               predicted_grouping.get_groups_subset({label}))
                 for label in true_grouping.group_labels}
-
+    
+    # Consensus merging of multiple SpineGroupings
     @staticmethod
     def merge(groupings: Iterable["SpineGrouping"], can_vote_outlier: bool = False,
               outliers_label: str = None) -> "SpineGrouping":
         merged = SpineGrouping(outliers_label=outliers_label)
 
         # merged samples is union of samples from each grouping
+        # Remove duplicates, include all spines seen by any annotator
         merged.samples = set().union(*[grouping.samples for grouping in groupings])
 
-        # merged grouping contains all groups from each grouping
-        for grouping in groupings:
-            for label in grouping.groups.keys():
-                merged.groups[label] = set()
-
+        # merged.grouping contains all groups from each grouping      
         # determine group for each sample
         if len(merged.groups) > 0:
             for spine_name in merged.samples:
@@ -230,9 +229,9 @@ class SpineGrouping:
                     label = grouping.get_group(spine_name)
                     if label != grouping.outliers_label or can_vote_outlier:
                         votes[label] += 1
-                votes_sorted = [(label, vote_num) for (label, vote_num) in votes.items()]
-                votes_sorted.sort(key=lambda label_vn: label_vn[1], reverse=True)
-                most_voted_label = votes_sorted[0][0]
+        ## Determine highest voted label
+        ## If its not an outlier add it to the merged groups        
+                most_voted_label = max(votes.items(), key=lambda x: x[1])[0]
                 if most_voted_label != merged.outliers_label:
                     merged.groups[most_voted_label].add(spine_name)
 
