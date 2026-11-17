@@ -229,16 +229,17 @@ class SpineMetricDataset:
         else:
             raise NotImplemented(f"method {method} is not supported")
     
-    ## PC1 and PC2: first and second principal components
+    ## PCA coordinates are principal components; t-SNE coordinates are embedding dimensions.
     def reduce(self, n_components: int = 2, method: str = "pca") -> "SpineMetricDataset":
         reduced_metrics = {spine_name: [] for spine_name in self.spine_names}
         # Transform all spines features vectors, for two components, return two coordinates per spine
         reduced_data = self.as_reduced_array(n_components, method)
         ordered_names = self.ordered_spine_names
+        component_prefix = "PC" if method == "pca" else "t-SNE "
         ## I.e reduced data at the first spine, first principal component
         for i, spine_name in enumerate(ordered_names):
             for j in range(n_components):
-                conv = ManualFloatSpineMetric(reduced_data[i, j], f"PC{j + 1}")
+                conv = ManualFloatSpineMetric(reduced_data[i, j], f"{component_prefix}{j + 1}")
                 reduced_metrics[spine_name].append(conv)
         return SpineMetricDataset(reduced_metrics)
 
